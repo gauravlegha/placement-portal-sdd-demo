@@ -1,39 +1,58 @@
-# Placement Portal Application (MAD-I Project)
+# Spec-Driven Development vs. Vibe Coding 
 
-A role-based web application built with Flask and SQLite that facilitates campus recruitment activities between the Institute (Admin), Companies, and Students.
+**Author:** Gaurav 
+**Program:** BS in Data Science, IIT Madras
+**Base Project:** Placement Portal Application (Flask/SQLite)
+**New Feature:** Automated Resume Analysis & ATS Scoring
 
-## Prerequisites
-* Python 3.8 or higher installed on your system.
+---
 
-## Installation & Setup Instructions
+## 🎯 Assignment Overview
+This repository demonstrates the contrast between **Vibe Coding** and **Spec-Driven Development (SDD)** methodologies. 
 
-1. **Extract the Project:**
-   Unzip the project folder and open your terminal/command prompt inside the root directory of the project.
+The identical feature (Resume Analysis) was implemented across two separate branches. The feature extracts text from student uploaded PDFs and calculates a keyword-based ATS score optimized for Data Science and Web Development roles.
 
-2. **Install Dependencies:**
-   Install all required Python packages using the provided requirements file:
-   `pip install -r requirements.txt`
+### How to Evaluate This Repository
 
-3. **Initialize the Database:**
-   The SQLite database (`placement.db`) is generated programmatically. Simply running the application for the first time will create the database, tables, and the default admin account automatically.
+Please review the two branches to observe the contrast in methodologies:
 
-4. **Run the Application:**
-   Start the Flask development server:
-   `python app.py`
+#### 1. Branch: `vibe_coded_submission`
+* **Methodology:** The feature was built rapidly without formal planning, documentation, or architecture design. 
+* **Key Characteristics:** * Inline styling in HTML templates.
+  * Logic tightly coupled within existing routes.
+  * Zero preliminary documentation.
+  * Focus was entirely on immediate execution and working code.
 
-5. **Access the Portal:**
-   Open your web browser and navigate to: **http://127.0.0.1:5000**
+#### 2. Branch: `sdd_submission` (Current)
+* **Methodology:** The feature was built strictly following the Spec-Driven Development philosophy. The documentation acted as the single Source of Truth before any code was written.
+* **Key Characteristics:**
+  * **The `docs/` Directory:** Please review this folder first. It contains the complete paper trail:
+    * `proposal.md` (What and Why)
+    * `spec.md` (The technical blueprint and Source of Truth)
+    * `tasks.md` (Implementation breakdown)
+    * `project.md` & `delta.md` (Architecture context)
+  * **Code Implementation:** The code in `app.py` and `student_dashboard.html` was written strictly to fulfill the requirements outlined in `spec.md`, demonstrating planned error handling and structured integration.
 
-## Evaluator Login Credentials
+---
 
-To test the Admin functionalities, please use the pre-configured superuser account:
-* **Role:** Admin
-* **Username:** `admin`
-* **Password:** `admin123`
+## ⚙️ Local Setup Instructions
 
-*(Note: Companies and Students must self-register on the portal. Company accounts will require Admin approval from the dashboard before they can log in.)*
+If you wish to run the code locally to test the feature:
 
-## Key Features to Test
-* **File Uploads:** Register a student and test the PDF resume upload feature.
-* **API Endpoints:** Navigate to `/api/drives`, `/api/students`, or `/api/applications` to view the JSON data endpoints.
-* **Charts:** Check the Admin and Company dashboards for dynamic Chart.js data visualizations.
+1. **Install Dependencies:**
+   ```bash
+   pip install -r requirements.txt
+Initialize Database (If needed):
+
+Bash
+python upgrade_db.py
+Run the Application:
+
+Bash
+python app.py
+Access the Portal:
+Navigate to http://127.0.0.1:5000.
+
+To test the feature: Log in or register as a Student, click "Edit Profile," upload a sample PDF resume, and view the dashboard.
+
+
