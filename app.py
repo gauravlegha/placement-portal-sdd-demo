@@ -247,7 +247,29 @@ def student_dashboard():
         return redirect(url_for('home'))
 
     student = Student.query.filter_by(user_id=current_user.id).first()
+    ats_score = None
+    found_skills = []
+    suggestions = []
 
+    if student.resume:
+        resume_path = os.path.join(app.config['UPLOAD_FOLDER'], student.resume)
+        if os.path.exists(resume_path):
+            try:
+                reader = PdfReader(resume_path)
+                text = "".join([page.extract_text() or "" for page in reader.pages])
+                text_lower = text.lower()
+                
+                skills_to_look_for = ['python', 'flask', 'sql', 'machine learning', 'data science', 'html', 'css', 'linux']
+                found_skills = [skill for skill in skills_to_look_for if skill in text_lower]
+                
+                ats_score = min(len(found_skills) * 15, 100)
+                
+                if 'python' not in found_skills:
+                    suggestions.append("Consider adding Python explicitly.")
+                if len(found_skills) < 3:
+                    suggestions.append("Your resume lacks technical keywords.")
+            except Exception as e:
+                print("Error reading resume:", e)
     search_query = request.args.get('search', '') # Get what they typed in the search bar
 
     if search_query:
@@ -265,19 +287,12 @@ def student_dashboard():
 
     my_applications = Application.query.filter_by(student_id=student.id).all()
 
-    status_counts = {
-        'Applied': 0,
-        'Shortlisted': 0,
-        'Selected': 0,
-        'Rejected': 0
-    }
-    for app in my_applications:
-        if app.status in status_counts:
-            status_counts[app.status] += 1
-        else:
-            status_counts[app.status] = 1
+    status_counts = {'Applied': 0, 'Shortlisted': 0, 'Selected': 0, 'Rejected': 0}
+    # Changed 'app' to 'application_record' to avoid conflict with the Flask 'app'
+    for application_record in my_applications:
+        status_counts[application_record.status] = status_counts.get(application_record.status, 0) + 1
     
-    applied_drive_ids = [app.drive_id for app in my_applications]
+    applied_drive_ids = [application_record.drive_id for application_record in my_applications]
 
     return render_template('student_dashboard.html', 
                            student=student, 
@@ -285,9 +300,10 @@ def student_dashboard():
                            my_applications=my_applications,
                            applied_drive_ids=applied_drive_ids,
                            search_query=search_query,
-                           status_counts=status_counts) 
-
-
+                           status_counts=status_counts,
+                           ats_score=ats_score,          
+                           found_skills=found_skills,    
+                           suggestions=suggestions)
 @app.route('/approve_company/<int:company_id>', methods=['POST'])
 @login_required
 def approve_company(company_id):
@@ -553,6 +569,52 @@ def api_get_applications():
         'count': len(app_list),
         'applications': app_list
     })
+
+from PyPDF2 import PdfReader
+
+# --- NEW VIBE CODED FEATURE ---
+@app.route('/resume-analysis', methods=['GET', 'POST'])
+def resume_analysis():
+    if request.method == 'POST':
+        # Check if file was uploaded
+        if 'resume' not in request.files:
+            return "No file uploaded", 400
+        
+        file = request.files['resume']
+        if file.filename == '':
+            return "No selected file", 400
+
+        if file and file.filename.endswith('.pdf'):
+            # Extract text from PDF
+            reader = PdfReader(file)
+            text = ""
+            for page in reader.pages:
+                text += page.extract_text() or ""
+
+            # Super basic "vibe coded" logic for analysis
+            text_lower = text.lower()
+            
+            # Since you are a Data Science student, let's look for relevant skills!
+            skills_to_look_for = ['python', 'flask', 'sql', 'machine learning', 'data science', 'html', 'css', 'linux']
+            found_skills = [skill for skill in skills_to_look_for if skill in text_lower]
+            
+            # Dummy ATS Score logic (15 points per skill found, max 100)
+            score = min(len(found_skills) * 15, 100) 
+            
+            # Basic suggestions
+            suggestions = []
+            if 'python' not in found_skills:
+                suggestions.append("Consider adding Python to your resume explicitly.")
+            if len(found_skills) < 3:
+                suggestions.append("Your resume lacks technical keywords. Add more specific tech stack terms.")
+            if score == 100:
+                suggestions.append("Great keyword match!")
+
+            return render_template('resume_results.html', score=score, skills=found_skills, suggestions=suggestions)
+        else:
+            return "Please upload a valid PDF file (.pdf).", 400
+
+    return render_template('resume_upload.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

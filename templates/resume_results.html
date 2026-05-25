@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head><title>Resume Results</title></head>
+<body>
+    <h2>Analysis Results</h2>
+    
+    <h3>Estimated ATS Score: {{ score }} / 100</h3>
+    
+    <h4>Skills Detected:</h4>
+    <ul>
+        {% for skill in skills %}
+            <li>{{ skill | title }}</li>
+        {% else %}
+            <li>No recognized skills found.</li>
+        {% endfor %}
+    </ul>
+
+    <h4>Suggestions:</h4>
+    <ul>
+        {% for suggestion in suggestions %}
+            <li>{{ suggestion }}</li>
+        {% endfor %}
+    </ul>
+
+    <br>
+    <a href="/resume-analysis">Upload Another</a>
+</body>
+</html>
