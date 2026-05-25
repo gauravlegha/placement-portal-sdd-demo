@@ -5,6 +5,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from flask_bcrypt import Bcrypt
 import os
 from werkzeug.utils import secure_filename
+from PyPDF2 import PdfReader
 from datetime import datetime
 app = Flask(__name__)
 
@@ -247,7 +248,32 @@ def student_dashboard():
         return redirect(url_for('home'))
 
     student = Student.query.filter_by(user_id=current_user.id).first()
+    ats_score = None
+    found_skills = []
+    suggestions = []
 
+    if student.resume:
+        resume_path = os.path.join(app.config['UPLOAD_FOLDER'], student.resume)
+        if os.path.exists(resume_path):
+            try:
+                reader = PdfReader(resume_path)
+                text = "".join([page.extract_text() or "" for page in reader.pages])
+                text_lower = text.lower()
+                
+                # Keywords defined in Spec
+                skills_to_look_for = ['python', 'flask', 'sql', 'machine learning', 'data science', 'html', 'css', 'linux']
+                found_skills = [skill for skill in skills_to_look_for if skill in text_lower]
+                
+                # Scoring math defined in Spec
+                ats_score = min(len(found_skills) * 15, 100)
+                
+                # Suggestions engine defined in Spec
+                if 'python' not in found_skills:
+                    suggestions.append("Consider adding Python explicitly.")
+                if len(found_skills) < 3:
+                    suggestions.append("Your resume lacks technical keywords.")
+            except Exception as e:
+                print("Error reading resume:", e)
     search_query = request.args.get('search', '') # Get what they typed in the search bar
 
     if search_query:
@@ -265,19 +291,12 @@ def student_dashboard():
 
     my_applications = Application.query.filter_by(student_id=student.id).all()
 
-    status_counts = {
-        'Applied': 0,
-        'Shortlisted': 0,
-        'Selected': 0,
-        'Rejected': 0
-    }
-    for app in my_applications:
-        if app.status in status_counts:
-            status_counts[app.status] += 1
-        else:
-            status_counts[app.status] = 1
+    status_counts = {'Applied': 0, 'Shortlisted': 0, 'Selected': 0, 'Rejected': 0}
+    # Changed 'app' to 'application_record' to avoid conflict with the Flask 'app'
+    for application_record in my_applications:
+        status_counts[application_record.status] = status_counts.get(application_record.status, 0) + 1
     
-    applied_drive_ids = [app.drive_id for app in my_applications]
+    applied_drive_ids = [application_record.drive_id for application_record in my_applications]
 
     return render_template('student_dashboard.html', 
                            student=student, 
@@ -285,8 +304,10 @@ def student_dashboard():
                            my_applications=my_applications,
                            applied_drive_ids=applied_drive_ids,
                            search_query=search_query,
-                           status_counts=status_counts) 
-
+                           status_counts=status_counts,
+                           ats_score=ats_score,          
+                           found_skills=found_skills,    
+                           suggestions=suggestions)
 
 @app.route('/approve_company/<int:company_id>', methods=['POST'])
 @login_required
