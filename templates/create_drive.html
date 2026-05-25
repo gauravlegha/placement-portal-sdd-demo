@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Post a New Placement Drive</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="/create_drive">
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Job Title</label>
+                        <input type="text" name="job_title" class="form-control" placeholder="e.g., Software Engineer" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Job Description & Requirements</label>
+                        <textarea name="description" class="form-control" rows="5" placeholder="Enter skills, experience, salary, etc..." required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Eligibility Criteria</label>
+                        <textarea name="eligibility_criteria" class="form-control" rows="3" placeholder="e.g., Minimum 7.0 CGPA..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Application Deadline</label>
+                        <input type="date" name="application_deadline" class="form-control" required>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success">Submit for Admin Approval</button>
+                        <a href="/company_dashboard" class="btn btn-secondary">Cancel</a>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

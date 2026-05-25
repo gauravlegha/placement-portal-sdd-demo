@@ -1,0 +1,64 @@
+openapi: 3.0.0
+info:
+  title: Placement Portal API
+  description: JSON-based API endpoints for retrieving portal data.
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:5000
+    description: Local development server
+
+paths:
+  /api/drives:
+    get:
+      summary: Get all approved placement drives
+      description: Returns a list of all job postings that have been approved by the Admin.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                count: 1
+                drives:
+                  - drive_id: 1
+                    company_name: "Microsoft"
+                    job_title: "Junior Developer"
+                    description: "Python, Flask"
+                    status: "Approved"
+
+  /api/students:
+    get:
+      summary: Get all registered students
+      description: Returns a directory of all students and their profile details.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                count: 1
+                students:
+                  - student_id: 1
+                    name: "Rahul"
+                    education: "B.Tech CS"
+                    skills: "Python, SQL"
+
+  /api/applications:
+    get:
+      summary: Get all job applications
+      description: Returns a list of all applications submitted by students.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                count: 1
+                applications:
+                  - application_id: 1
+                    student_id: 1
+                    drive_id: 1
+                    status: "Shortlisted"

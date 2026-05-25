@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>{{ company.name }} - Company Dashboard</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="/create_drive" class="btn btn-primary">Post New Placement Drive</a>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Application Trends for Your Posted Jobs</h4>
+    </div>
+    <div class="card-body">
+        <canvas id="companyChart" height="100"></canvas>
+    </div>
+</div>
+
+
+<div class="card">
+    <div class="card-header bg-dark text-white">
+        <h4 class="mb-0">Your Placement Drives</h4>
+    </div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Job Title</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for drive in drives %}
+                <tr>
+                    <td>{{ drive.job_title }}</td>
+                    <td>{{ drive.description }}</td>
+                    <td>
+                        <span class="badge {% if drive.status == 'Approved' %}bg-success{% elif drive.status == 'Pending' %}bg-secondary{% else %}bg-dark{% endif %}">
+                            {{ drive.status }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if drive.status == 'Approved' %}
+                            <div class="d-flex gap-2">
+                                <a href="/view_applications/{{ drive.id }}" class="btn btn-info btn-sm text-white">View Applicants</a>
+                                <form action="/close_drive/{{ drive.id }}" method="POST" onsubmit="return confirm('Are you sure you want to close this drive? Students will no longer be able to apply.');">
+                                    <button type="submit" class="btn btn-warning btn-sm">Close Drive</button>
+                                </form>
+                            </div>
+                        {% elif drive.status == 'Closed' %}
+                            <a href="/view_applications/{{ drive.id }}" class="btn btn-secondary btn-sm">View Past Applicants</a>
+                        {% else %}
+                            <span class="text-muted small">Pending Approval</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" class="text-center">You haven't posted any drives yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const ctx = document.getElementById('companyChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            // The | tojson filter safely converts Python lists into JavaScript arrays!
+            labels: {{ job_titles | tojson }},
+            datasets: [{
+                label: 'Number of Applications Received',
+                data: {{ app_counts | tojson }},
+                backgroundColor: 'rgba(54, 162, 235, 0.7)', // Nice blue color
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { precision: 0 } // Forces whole numbers only
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

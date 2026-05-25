@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-10">
+        <h2>Applicants for: {{ drive.job_title }}</h2>
+        <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm mt-2">&larr; Go Back</a>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <table class="table table-striped align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Student Name</th>
+                    <th>Profile Details</th>
+                    <th>Resume</th>
+                    <th>Current Status</th>
+                    <th>Update Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in app_details %}
+                <tr>
+                    <td class="fw-bold">{{ app.student_name }}</td>
+                    <td>
+                        <small>
+                            <strong>Edu:</strong> {{ app.education or 'N/A' }}<br>
+                            <strong>Skills:</strong> {{ app.skills or 'N/A' }}
+                        </small>
+                    </td>
+                    <td>
+                        {% if app.resume %}
+                            <a href="/static/resumes/{{ app.resume }}" target="_blank" class="btn btn-sm btn-outline-info">View Resume</a>
+                        {% else %}
+                            <span class="text-muted small">No Resume</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge {% if app.status == 'Selected' %}bg-success{% elif app.status == 'Rejected' %}bg-danger{% elif app.status == 'Shortlisted' %}bg-warning text-dark{% else %}bg-primary{% endif %}">
+                            {{ app.status }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if current_user.role == 'company' %}
+                            <form action="/update_application/{{ app.app_id }}" method="POST" class="d-flex">
+                                <select name="new_status" class="form-select form-select-sm me-2">
+                                    <option value="Applied" {% if app.status == 'Applied' %}selected{% endif %}>Applied</option>
+                                    <option value="Shortlisted" {% if app.status == 'Shortlisted' %}selected{% endif %}>Shortlist</option>
+                                    <option value="Selected" {% if app.status == 'Selected' %}selected{% endif %}>Select</option>
+                                    <option value="Rejected" {% if app.status == 'Rejected' %}selected{% endif %}>Reject</option>
+                                </select>
+                                <button type="submit" class="btn btn-secondary btn-sm">Update</button>
+                            </form>
+                        {% else %}
+                            <span class="text-muted fw-bold">View Only</span>
+                        {% endif %}
+                        </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center">No students have applied to this drive yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

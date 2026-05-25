@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+        <h2>Welcome, {{ student.full_name }}</h2>
+        <p class="text-muted mb-1">
+            <strong>Education:</strong> {{ student.education or 'Not provided' }} | 
+            <strong>Skills:</strong> {{ student.skills or 'Not provided' }}
+        </p>
+        {% if student.resume %}
+            <a href="/static/resumes/{{ student.resume }}" target="_blank" class="btn btn-sm btn-info text-white mt-2">View My Resume</a>
+        {% endif %}
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="/edit_profile" class="btn btn-outline-primary">Edit Profile</a>
+    </div>
+    <div class="col-12"><hr></div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Available Placement Drives</h4>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="/student_dashboard" class="mb-4 d-flex">
+                    <input type="text" name="search" class="form-control me-2" placeholder="Search by company, position, or skills..." value="{{ search_query }}">
+                    <button type="submit" class="btn btn-outline-primary">Search</button>
+                    {% if search_query %}
+                        <a href="/student_dashboard" class="btn btn-outline-secondary ms-2">Clear</a>
+                    {% endif %}
+                </form>
+                {% for drive in available_drives %}
+                    <div class="border-bottom pb-3 mb-3">
+                        <h5>{{ drive.job_title }} (Company ID: {{ drive.company_id }})</h5>
+                        <p class="text-muted">{{ drive.description }}</p>
+                        
+                        {% if drive.id in applied_drive_ids %}
+                            <button class="btn btn-secondary btn-sm" disabled>Already Applied</button>
+                        {% else %}
+                            <form action="/apply/{{ drive.id }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-success btn-sm">Apply Now</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <p>No approved placement drives are currently available.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h4 class="mb-0">My Applications</h4>
+            </div>
+            <div class="card-body border-bottom">
+                <canvas id="studentChart"></canvas>
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for app in my_applications %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Drive ID: {{ app.drive_id }}
+                        <span class="badge bg-info rounded-pill">{{ app.status }}</span>
+                    </li>
+                {% else %}
+                    <li class="list-group-item">You haven't applied to any drives yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const ctx = document.getElementById('studentChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Applied', 'Shortlisted', 'Selected', 'Rejected'],
+            datasets: [{
+                data: [
+                    {{ status_counts.get('Applied', 0) }},
+                    {{ status_counts.get('Shortlisted', 0) }},
+                    {{ status_counts.get('Selected', 0) }},
+                    {{ status_counts.get('Rejected', 0) }}
+                ],
+                backgroundColor: [
+                    'rgba(13, 202, 240, 0.7)', // Info Blue
+                    'rgba(255, 193, 7, 0.7)',  // Warning Yellow
+                    'rgba(25, 135, 84, 0.7)',  // Success Green
+                    'rgba(220, 53, 69, 0.7)'   // Danger Red
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+</script>
+
+{% endblock %}
